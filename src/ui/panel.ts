@@ -203,7 +203,7 @@ export function createPanel(): DevicePanel {
       fill(id, device, notes);
       el.hidden = false;
       document.body.classList.add('panel-open');
-      title.focus();
+      title.focus({ preventScroll: true });
     },
     refresh(device, notes) {
       if (current) fill(current, device, notes);

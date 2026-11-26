@@ -2,7 +2,7 @@ import type { LinkId, NodeId, TopoLink, TopoNode, Topology } from '../types';
 import { CLOUD_PATH, iconPath } from './icons';
 import { exitFraction, svg, text, textWidth, type Box, type Pt } from './svg';
 
-export const VIEW_W = 1000;
+export const VIEW_W = 1040;
 export const VIEW_H = 640;
 
 const LINK_FS = 14;
@@ -178,17 +178,24 @@ export function buildScene(container: HTMLElement, topo: Topology): Scene {
       console.warn(`[stage] frame ${f.id} has no known nodes`);
       continue;
     }
-    const pad = 28;
-    const top = 30;
+    // The frame is a dashed outline with a solid, clickable header strip; the
+    // nodes inside keep their own click targets (the outline ignores pointers).
+    const pad = 18;
+    const header = 30;
+    const gap = 10;
     const x0 = Math.min(...boxes.map((b) => b.x - b.w / 2)) - pad;
     const x1 = Math.max(...boxes.map((b) => b.x + b.w / 2)) + pad;
-    const y0 = Math.min(...boxes.map((b) => b.y - b.h / 2)) - top;
-    const y1 = Math.max(...boxes.map((b) => b.y + b.h / 2)) + 16;
+    const y0 = Math.min(...boxes.map((b) => b.y - b.h / 2)) - header - gap;
+    const y1 = Math.max(...boxes.map((b) => b.y + b.h / 2)) + 14;
     const g = svg('g', { class: 'stage-frame', 'data-state': 'normal' }, frameLayer);
     makeFocusable(g, f.label, f.id);
     svg('rect', { class: 'stage-ring', x: x0 - 6, y: y0 - 6, width: x1 - x0 + 12, height: y1 - y0 + 12, rx: 22 }, g);
-    svg('rect', { class: 'stage-frame-shape', x: x0, y: y0, width: x1 - x0, height: y1 - y0, rx: 16 }, g);
-    text(f.label, { class: 'stage-frame-label', x: x0 + 14, y: y0 + 21 }, g);
+    svg('rect', { class: 'stage-frame-shape', x: x0, y: y0, width: x1 - x0, height: y1 - y0, rx: 14 }, g);
+    svg('path', {
+      class: 'stage-frame-header',
+      d: `M${x0} ${y0 + header}V${y0 + 14}a14 14 0 0 1 14 -14H${x1 - 14}a14 14 0 0 1 14 14V${y0 + header}Z`,
+    }, g);
+    text(f.label, { class: 'stage-frame-label', x: x0 + 14, y: y0 + 20 }, g);
     frames.set(f.id, { id: f.id, box: { x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 }, g });
   }
 

@@ -1,7 +1,7 @@
 import type { Flow, Lesson, NodeId, NodeState, SolveResult } from '../types';
 
+// The Orbi stays visible (yellow cable on Gi1/0/2) so the whole core setup is on screen.
 const hidden: Partial<Record<NodeId, NodeState>> = {
-  orbi: 'hidden',
   laptop: 'hidden',
   'tent-hub': 'hidden',
   'tent-sensor': 'hidden',
@@ -41,6 +41,7 @@ export const corePath: Lesson = {
     const links: SolveResult['links'] = online ? {} : { coax: 'down' };
     const linkLabels: SolveResult['linkLabels'] = {
       grey: 'Gi1/0/4',
+      yellow: 'Gi1/0/2',
       lan: 'Gi1/0/1',
       wan: online ? 'WAN 203.0.113.45' : 'WAN (no lease)',
     };

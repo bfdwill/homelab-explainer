@@ -88,7 +88,12 @@ export function mountApp(root: HTMLElement, deps: AppDeps): void {
   });
 
   const stageEl = h('div', { class: 'stage-container' });
-  const stageWrap = h('div', { class: 'stage-wrap' }, stageEl);
+  const stageHint = h(
+    'p',
+    { class: 'stage-hint', 'aria-hidden': 'true' },
+    "Tap any device to learn why it's here",
+  );
+  const stageWrap = h('div', { class: 'stage-wrap' }, stageEl, stageHint);
 
   const prevBtn = h('button', { type: 'button', class: 'btn btn-ghost pager-prev' });
   const nextBtn = h('button', { type: 'button', class: 'btn pager-next' });

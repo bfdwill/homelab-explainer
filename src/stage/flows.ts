@@ -1,5 +1,5 @@
 import type { Flow, NodeId, Topology } from '../types';
-import type { NodeView } from './scene';
+import { VIEW_W, type NodeView } from './scene';
 import { svg, text, textWidth, type Pt } from './svg';
 
 /** Packet speed in SVG units per millisecond. */
@@ -236,8 +236,9 @@ export class FlowPlayer {
     const { x, y, h } = nv.box;
     const w = textWidth(reason, 13, true) + 22;
     const below = y < 200;
-    const cy = below ? y + h / 2 + 24 + n * 30 : y - h / 2 - 24 - n * 30;
-    const cx = Math.min(Math.max(x, w / 2 + 6), 1000 - w / 2 - 6);
+    // Sit clear of the node edge, where the blocked packet marker and its label rest.
+    const cy = below ? y + h / 2 + 42 + n * 30 : y - h / 2 - 46 - n * 30;
+    const cx = Math.min(Math.max(x, w / 2 + 6), VIEW_W - w / 2 - 6);
     const g = svg('g', { class: 'stage-badge-pos', transform: `translate(${cx} ${cy})` }, this.layer);
     const c = svg('g', { class: `stage-callout${isStatic ? ' static' : ''}` }, g);
     svg('rect', { x: -w / 2, y: -13, width: w, height: 26, rx: 8 }, c);
