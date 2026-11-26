@@ -39,7 +39,7 @@ export const devices: Record<NodeId, DeviceInfo> = {
     what:
       'A small, low-power PC running Proxmox VE, a hypervisor that runs virtual machines. Its job here is to host the OPNsense firewall as a VM.',
     why:
-      'It has two physical network ports, which is exactly what a firewall needs: one facing the modem, one facing the house. Each NIC is attached to a Linux bridge, and OPNsense gets one virtual NIC on each bridge. The host itself has no IP on the WAN bridge, so it is not exposed to the internet.',
+      'It has two network ports, the built-in NIC plus a USB NIC, which is exactly what a firewall needs: one facing the modem, one facing the house. Each NIC is attached to a Linux bridge, and OPNsense gets one virtual NIC on each bridge. The host itself has no IP on the WAN bridge, so it is not exposed to the internet.',
     facts: [
       { label: 'Built-in NIC', value: 'vmbr0, LAN side, cabled to switch Gi1/0/1' },
       { label: 'USB NIC', value: 'vmbr1, WAN side, cabled to the ARRIS modem' },

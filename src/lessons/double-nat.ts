@@ -146,7 +146,7 @@ export const doubleNat: Lesson = {
             status:
               'Blocked: from the PC side the whole WiFi network is one address, 192.168.1.2, and the Orbi drops new inbound connections it has no state or port forward for.',
             details: [
-              'The PC cannot address 10.0.0.x directly: it has no route to it, so it would send that traffic to OPNsense, which does not know where 10.0.0.0/24 is either.',
+              'The PC cannot address 10.0.0.x directly: it has no route to it, so it would send that traffic to OPNsense, which has no route to 10.0.0.0/24 and would push it out its WAN default route, where it goes nowhere.',
               'The only reachable address is the Orbi WAN, 192.168.1.2, and nothing on it is waiting for this connection.',
               'Casting and discovery are worse still: their broadcast and multicast packets never leave 192.168.1.0/24, so the PC cannot even see that the laptop exists.',
               'Fixes: put the Orbi in AP mode (best), or add port forwards on the Orbi for each service (fragile).',

@@ -40,10 +40,10 @@ export const iotVlan: Lesson = {
 
     const hubAddr = on ? '192.168.30.20' : 'a 192.168.1.x address';
     const onNotes = [
-      'Switch: Gi1/0/10 is an access port in VLAN 30, so the hub frames are tagged as VLAN 30 inside the switch.',
+      'Switch: Gi1/0/10 is an access port in VLAN 30, so the switch puts the hub\'s untagged frames in VLAN 30; they only get an 802.1Q tag when they leave on the Gi1/0/1 trunk.',
       'Gi1/0/1 is now an 802.1Q trunk: VLAN 1 untagged (native) for the LAN, VLAN 30 tagged for IoT.',
       'Proxmox vmbr0 passes the tagged frames to the VM; OPNsense sees VLAN 30 as its own interface, vtnet0.30 (IOT, 192.168.30.1/24).',
-      'IOT rules, top to bottom: allow DNS to the firewall, block IOT net → LAN net, allow IOT net → any (internet).',
+      'IOT rules, top to bottom: allow DNS to the IOT address, block IOT net → LAN net, block IOT net → This Firewall, allow IOT net → any (internet).',
       'LAN keeps its default "allow LAN to any" rule, so LAN → IOT is allowed. State tracking lets the replies back in, but the IoT side can never start a connection to the LAN.',
     ];
     const offNotes = [
@@ -143,7 +143,7 @@ export const iotVlan: Lesson = {
             'PC → gateway 192.168.1.1 (untagged on the trunk) → OPNsense routes it to vtnet0.30 → back down the trunk tagged 30 → Gi1/0/10 → hub.',
             'The packet crosses the switch twice, once in each VLAN. That is normal for "router on a stick".',
             'OPNsense creates a state entry when the PC opens the connection. The hub reply matches it, so it passes even though IOT → LAN is blocked.',
-            'If you want the IoT side fully isolated, add a LAN rule that only allows specific ports (e.g. the hub web UI) to 192.168.30.20.',
+            'To restrict LAN → IOT too, replace the blanket allow with a LAN rule that only allows the hub\'s web UI port to 192.168.30.20.',
             ...onNotes,
           ],
         };
@@ -160,7 +160,7 @@ export const iotVlan: Lesson = {
             : 'Allowed: the hub asks Unbound at 192.168.1.1 like every other LAN device.',
           details: [
             on
-              ? 'Because the block rule covers "LAN net" and not the firewall itself, DNS to 192.168.30.1 would pass anyway; the explicit allow makes the intent clear and survives tighter rules later.'
+              ? 'The DNS allow sits above "block IOT net → This Firewall"; without it, that rule would drop DNS to 192.168.30.1 along with the GUI and SSH.'
               : 'DHCP on the LAN gives the hub 192.168.1.1 as its DNS server.',
             on
               ? 'Unbound must listen on the IOT interface (or all interfaces) for this to work.'
@@ -182,7 +182,7 @@ export const iotVlan: Lesson = {
   },
   deviceNotes: {
     opnsense: {
-      body: 'VLAN 30 lives on the LAN NIC as vtnet0.30, assigned as the IOT interface (192.168.30.1/24) with its own DHCP range. Rule order on IOT matters: allow DNS, block to LAN net, then allow any.',
+      body: 'VLAN 30 lives on the LAN NIC as vtnet0.30, assigned as the IOT interface (192.168.30.1/24) with its own DHCP range. Rule order on IOT matters: allow DNS, block to LAN net, block to This Firewall, then allow any.',
       snippets: [snippets.opnsenseVlan30, snippets.opnsenseIotRules],
     },
     switch: {

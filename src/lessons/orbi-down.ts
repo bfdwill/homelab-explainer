@@ -38,7 +38,7 @@ const causes: Record<Cause, CauseInfo> = {
     pcReason: 'Gi1/0/2 is notconnect: no link to the Orbi',
     status:
       'Gi1/0/2 shows notconnect and both LEDs are dark: the yellow cable (or a port at either end) is not passing a signal, so WiFi clients have nowhere to go.',
-    showStatus: 'Gi1/0/2  notconnect  1  auto  auto  10/100/1000BaseTX',
+    showStatus: 'Gi1/0/2  Orbi (yellow)  notconnect  1  auto  auto  10/100/1000BaseTX',
     fixedBy: 'reseating the yellow cable',
     checklist: [
       'Reseat the yellow cable at both ends until it clicks.',
@@ -54,7 +54,7 @@ const causes: Record<Cause, CauseInfo> = {
     pcReason: 'Gi1/0/2 is disabled (shutdown in config)',
     status:
       'Gi1/0/2 shows disabled: the cable is fine, but the port has `shutdown` in its config, so the switch will not bring the link up.',
-    showStatus: 'Gi1/0/2  disabled  1  auto  auto  10/100/1000BaseTX',
+    showStatus: 'Gi1/0/2  Orbi (yellow)  disabled  1  auto  auto  10/100/1000BaseTX',
     fixedBy: 'running `no shutdown` on Gi1/0/2',
     checklist: [
       '`show running-config interface gi1/0/2` and look for a `shutdown` line.',
@@ -69,10 +69,10 @@ const causes: Record<Cause, CauseInfo> = {
     pcReason: 'Gi1/0/2 is err-disabled',
     status:
       'Gi1/0/2 shows err-disabled: the switch shut the port itself after a violation (for example BPDU guard or port security), and it stays down until you clear it.',
-    showStatus: 'Gi1/0/2  err-disabled  1  auto  auto  10/100/1000BaseTX',
+    showStatus: 'Gi1/0/2  Orbi (yellow)  err-disabled  1  auto  auto  10/100/1000BaseTX',
     fixedBy: 'clearing the err-disable and fixing its cause',
     checklist: [
-      '`show interfaces status err-disabled` and `show errdisable recovery` to see why (bpduguard, psecure-violation, link-flap...).',
+      '`show interfaces status err-disabled` (Reason column: bpduguard, psecure-violation, link-flap...) and `show logging | include ERR-DISABLE`; `show errdisable recovery` shows whether auto-recovery is on.',
       'Fix the cause first (for example remove a loop, or adjust port security), otherwise it will trip again.',
       'Bounce the port: `interface gi1/0/2`, `shutdown`, then `no shutdown`.',
       'Optionally enable automatic recovery: `errdisable recovery cause <cause>`.',
@@ -85,13 +85,13 @@ const causes: Record<Cause, CauseInfo> = {
     pcReason: '',
     status:
       'The link is up, but the yellow cable is in one of the Orbi LAN ports, so the Orbi WAN/Internet port has nothing on it and reports "no internet" while its own DHCP leaks onto your main LAN.',
-    showStatus: 'Gi1/0/2  connected  1  a-full  a-1000  10/100/1000BaseTX',
+    showStatus: 'Gi1/0/2  Orbi (yellow)  connected  1  a-full  a-1000  10/100/1000BaseTX',
     fixedBy: 'moving the cable to the Orbi WAN/Internet port',
     checklist: [
       'Check which Orbi port the cable is in. The WAN/Internet port is usually a different colour or set apart from the LAN ports.',
       'In router mode, a LAN port connected to the switch puts the Orbi DHCP server (10.0.0.x) on your main LAN. Devices there may get the wrong address: check the PC with `ipconfig`.',
       'Move the cable to the WAN/Internet port and reboot the Orbi so it requests an address from OPNsense.',
-      'Confirm in OPNsense (Services > DHCPv4 > Leases) that the Orbi got 192.168.1.2.',
+      'Confirm in OPNsense (Services ▸ ISC DHCPv4 ▸ Leases, or the Kea/Dnsmasq leases page) that the Orbi got 192.168.1.2.',
     ],
   },
 };
@@ -148,7 +148,7 @@ export const orbiDown: Lesson = {
 
     const base = { links, nodes, linkLabels };
     const upDetails = [
-      `Fixed by ${cause.fixedBy}. \`show interfaces status\` now shows: Gi1/0/2  connected  1  a-full  a-1000`,
+      `Fixed by ${cause.fixedBy}. \`show interfaces status\` now shows: Gi1/0/2  Orbi (yellow)  connected  1  a-full  a-1000`,
       'Laptop → Orbi over WiFi, Orbi WAN (192.168.1.2) → yellow cable → Gi1/0/2 → Gi1/0/1 → OPNsense → modem → internet.',
       'The Orbi is still in router mode here, so the laptop traffic is NATed twice. The "Double NAT" lesson digs into that.',
     ];
