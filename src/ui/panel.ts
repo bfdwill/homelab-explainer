@@ -78,6 +78,23 @@ export function renderSnippet(s: Snippet): HTMLElement {
     },
     'Copy',
   );
+  // Long config lines scroll sideways by default; Wrap reflows them so nothing is cut off.
+  const pre = h('pre', { tabindex: '0' }, code);
+  const wrap = h(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn-small wrap-toggle',
+      'aria-pressed': 'false',
+      'aria-label': `Wrap long lines in ${s.title}`,
+      onclick: () => {
+        const on = wrap.getAttribute('aria-pressed') !== 'true';
+        wrap.setAttribute('aria-pressed', String(on));
+        pre.classList.toggle('is-wrapped', on);
+      },
+    },
+    'Wrap',
+  );
   return h(
     'figure',
     { class: 'snippet' },
@@ -87,9 +104,10 @@ export function renderSnippet(s: Snippet): HTMLElement {
       h('span', { class: 'snippet-title' }, s.title),
       h('span', { class: 'snippet-lang' }, LANG_LABEL[s.lang] ?? s.lang),
       feedback,
+      wrap,
       copy,
     ),
-    h('pre', { tabindex: '0' }, code),
+    pre,
     s.note ? h('p', { class: 'snippet-note' }, s.note) : null,
   );
 }
@@ -203,7 +221,7 @@ export function createPanel(): DevicePanel {
       fill(id, device, notes);
       el.hidden = false;
       document.body.classList.add('panel-open');
-      title.focus();
+      title.focus({ preventScroll: true });
     },
     refresh(device, notes) {
       if (current) fill(current, device, notes);

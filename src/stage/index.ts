@@ -1,6 +1,6 @@
 import type { LinkId, NodeId, NodeState, SolveResult, Stage, Topology } from '../types';
 import { FlowPlayer } from './flows';
-import { buildScene, setLinkLabel } from './scene';
+import { buildScene, setLinkLabel, VIEW_H, VIEW_W, type Scene } from './scene';
 import './stage.css';
 
 const STATE_SUFFIX: Partial<Record<NodeState, string>> = {
@@ -9,6 +9,34 @@ const STATE_SUFFIX: Partial<Record<NodeState, string>> = {
   highlight: ' (highlighted)',
   warn: ' (warning)',
 };
+
+/** Margin (SVG units) kept around the visible devices; leaves room for packet labels and callouts. */
+const FIT_MARGIN = 26;
+
+/** Crop the viewBox to the devices this lesson shows, so the diagram fills the stage. */
+function fitViewBox(scene: Scene, isHidden: (id: NodeId) => boolean): void {
+  let x0 = Infinity;
+  let y0 = Infinity;
+  let x1 = -Infinity;
+  let y1 = -Infinity;
+  const add = (b: { x: number; y: number; w: number; h: number }) => {
+    x0 = Math.min(x0, b.x - b.w / 2);
+    y0 = Math.min(y0, b.y - b.h / 2);
+    x1 = Math.max(x1, b.x + b.w / 2);
+    y1 = Math.max(y1, b.y + b.h / 2);
+  };
+  for (const [id, nv] of scene.nodes) if (!isHidden(id)) add(nv.box);
+  for (const [id, fv] of scene.frames) if (!isHidden(id)) add(fv.box);
+  if (!Number.isFinite(x0)) {
+    scene.svg.setAttribute('viewBox', `0 0 ${VIEW_W} ${VIEW_H}`);
+    return;
+  }
+  x0 = Math.max(0, x0 - FIT_MARGIN);
+  y0 = Math.max(0, y0 - FIT_MARGIN);
+  x1 = Math.min(VIEW_W, x1 + FIT_MARGIN);
+  y1 = Math.min(VIEW_H, y1 + FIT_MARGIN);
+  scene.svg.setAttribute('viewBox', `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
+}
 
 export function createStage(container: HTMLElement, topology: Topology): Stage {
   const root = document.createElement('div');
@@ -55,6 +83,7 @@ export function createStage(container: HTMLElement, topology: Topology): Stage {
       nv.g.setAttribute('aria-label', base + (STATE_SUFFIX[st] ?? ''));
     }
     for (const [id, fv] of scene.frames) fv.g.dataset.state = stateOf(id);
+    fitViewBox(scene, (id) => stateOf(id) === 'hidden');
 
     for (const [id, lv] of scene.links) {
       const { a, b } = lv.link;

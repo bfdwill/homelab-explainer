@@ -595,6 +595,29 @@ button {
   display: block;
   width: 100%;
   height: auto;
+  /* Never taller than the viewport: the viewBox scales down so every device is visible at once. */
+  max-height: calc(100vh - var(--header-h) - 32px);
+  max-height: calc(100dvh - var(--header-h) - 32px);
+}
+.stage-hint {
+  margin: 0;
+  padding: 6px 12px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elev) 90%, transparent);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+body.panel-open .stage-hint {
+  display: none;
+}
+
+/* Keep in-page jumps and focus scrolling clear of the sticky header. */
+.controls,
+.stage-wrap,
+.status,
+.pager {
+  scroll-margin-top: calc(var(--header-h) + 16px);
 }
 
 /* ---------- Status ---------- */
@@ -878,6 +901,14 @@ button {
   line-height: 1.5;
   tab-size: 4;
 }
+.snippet pre.is-wrapped {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wrap-toggle[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
 .snippet-note {
   margin: 0;
   padding: 8px 12px;
@@ -987,8 +1018,21 @@ button {
   .main {
     padding: 20px var(--gutter) 40px;
   }
-  .lesson-head {
-    scroll-margin-top: 64px;
+  /* Header is static on phones; only the ~52px lesson strip is sticky. */
+  .lesson-head,
+  .controls,
+  .stage-wrap,
+  .status,
+  .pager {
+    scroll-margin-top: 68px;
+  }
+  .stage-container > svg {
+    max-height: none;
+  }
+  .stage-hint {
+    position: sticky;
+    left: 0;
+    width: calc(100vw - var(--gutter));
   }
   .lesson-title {
     font-size: 22px;
@@ -1022,6 +1066,35 @@ button {
     min-width: 680px;
   }
 
+  /* Touch targets: at least 44x44px for buttons, lesson links and toggles. */
+  .btn,
+  .switch,
+  .lesson-link,
+  .link-button,
+  .segment span {
+    min-height: 44px;
+  }
+  .btn,
+  .switch,
+  .segment span {
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn,
+  .lesson-link,
+  .link-button {
+    min-width: 44px;
+  }
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .sidebar-footer .link-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px;
+  }
+
   .pager .btn {
     max-width: 100%;
     white-space: normal;
@@ -1037,7 +1110,7 @@ button {
     top: auto;
     z-index: 40;
     height: auto;
-    max-height: 70vh;
+    max-height: 60vh;
     border-left: 0;
     border-top: 1px solid var(--border-strong);
     border-radius: 16px 16px 0 0;
@@ -1063,7 +1136,7 @@ button {
     padding: 0 var(--gutter) calc(24px + env(safe-area-inset-bottom, 0px));
   }
   body.panel-open .main {
-    padding-bottom: 72vh;
+    padding-bottom: 62vh;
   }
 }
 

@@ -7,7 +7,9 @@ internet, get NATed, or get stopped by a firewall rule. Every device has a side 
 with the real OPNsense, Cisco IOS XE and Proxmox configs behind it. Modeled after the
 "How It's Wired" style of explainers: one picture, one change at a time.
 
-![Screenshot](docs/screenshot.png)
+**Live:** https://homelab-explainer.vercel.app
+
+[![Screenshot: the Double NAT lesson in router mode, with the OPNsense device panel open](docs/screenshot.png)](https://homelab-explainer.vercel.app)
 
 ## The network
 
@@ -121,6 +123,19 @@ import the repository, keep the framework preset **Vite**, build command
 `npm run build`, output directory `dist`, and deploy. Every push to the default branch
 redeploys; pull requests get preview URLs.
 
+Production lives at https://homelab-explainer.vercel.app.
+
+`vercel.json` also sets response headers: hashed files under `/assets/*` are cached for a
+year (`immutable`), and every response gets `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin` and a strict Content-Security-Policy
+(`'self'` only, no `'unsafe-inline'`). The app builds DOM with `createElement`, never
+inline `<script>`/`<style>`, so keep it that way or the CSP will block it. The social
+preview image is `public/og-image.png` (1200x630); the canonical URL and Open Graph /
+Twitter tags are in `index.html`. If the domain changes, update those URLs.
+
+To check a deploy: open the preview URL from the Vercel bot comment on the PR, run
+through the four lessons (see below), then promote or merge.
+
 **CLI**:
 
 ```sh
@@ -138,6 +153,9 @@ vercel --prod   # deploy to production
 - OPNsense menu paths are for 24.x/25.x (e.g. VLANs under *Interfaces ▸ Devices ▸ VLAN*,
   formerly *Interfaces ▸ Other Types ▸ VLAN*). DHCP may be ISC, Kea or Dnsmasq depending on
   version and choice.
+- The switch baseline runs `no ip routing` so `ip default-gateway` takes effect (3650s often
+  ship with routing on). If you keep routing on, use `ip route 0.0.0.0 0.0.0.0 192.168.1.1`
+  instead. The RSA key is generated from privileged EXEC after `end`.
 - Switch configs are IOS XE syntax for the Catalyst 3650; the 3650 is 802.1Q only, so there
   is no `switchport trunk encapsulation` command.
 - Passwords and MACs in snippets are placeholders.

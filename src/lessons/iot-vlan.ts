@@ -8,7 +8,7 @@ export const iotVlan: Lesson = {
   title: 'IoT VLAN',
   intro:
     'The grow tent hub, sensor, fan and light are convenient, but they run closed firmware that rarely gets updates and talks to a vendor cloud. On a flat network, a compromised hub can reach the PC as easily as the internet.\n\n' +
-    'Turn on the IoT VLAN to put the tent on its own network, VLAN 30 (192.168.30.0/24). The switch keeps it separate, and OPNsense decides what may cross.',
+    'Turn on the IoT VLAN to put the tent on its own network, VLAN 30 (192.168.30.0/24). The switch keeps it separate, and OPNsense decides what may cross. Consumer Orbi units can\'t tag VLANs, so the tent hub gets its own switch access port (Gi1/0/10, VLAN 30) instead of joining the Orbi WiFi.',
   params: [
     {
       id: 'iotVlan',

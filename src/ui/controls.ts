@@ -31,7 +31,9 @@ export function createControls(cb: ControlsCallbacks): Controls {
 
   function toggle(p: Extract<Param, { type: 'toggle' }>): HTMLElement {
     const labelId = uniqueId('param-label');
-    const helpId = p.help ? uniqueId('param-help') : null;
+    const hasHelp = !!(p.help || p.helpOn || p.helpOff);
+    const helpId = hasHelp ? uniqueId('param-help') : null;
+    const helpEl = helpId ? h('p', { class: 'param-help', id: helpId }) : null;
     const stateText = h('span', { class: 'switch-state' });
     const btn = h(
       'button',
@@ -50,13 +52,14 @@ export function createControls(cb: ControlsCallbacks): Controls {
       const on = values[p.id] === true;
       btn.setAttribute('aria-checked', String(on));
       stateText.textContent = on ? (p.onLabel ?? 'On') : (p.offLabel ?? 'Off');
+      if (helpEl) helpEl.textContent = (on ? p.helpOn : p.helpOff) ?? p.help ?? '';
     });
     return h(
       'div',
       { class: 'param param-toggle' },
       h('span', { class: 'param-label', id: labelId }, p.label),
       btn,
-      helpId ? h('p', { class: 'param-help', id: helpId }, p.help) : null,
+      helpEl,
     );
   }
 

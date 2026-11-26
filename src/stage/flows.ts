@@ -1,5 +1,5 @@
 import type { Flow, NodeId, Topology } from '../types';
-import type { NodeView } from './scene';
+import { VIEW_W, type NodeView } from './scene';
 import { svg, text, textWidth, type Pt } from './svg';
 
 /** Packet speed in SVG units per millisecond. */
@@ -47,6 +47,8 @@ export class FlowPlayer {
   private loopTotal = 0;
   private calloutCount = new Map<NodeId, number>();
   private linkPairs = new Set<string>();
+  /** Nodes drawn inside a frame (e.g. OPNsense in Proxmox): their top edge sits under the frame header. */
+  private framed = new Set<NodeId>();
 
   constructor(
     private layer: SVGGElement,
@@ -54,6 +56,7 @@ export class FlowPlayer {
     topo: Topology,
     private reducedMotion: () => boolean,
   ) {
+    for (const f of topo.frames) f.around.forEach((id) => this.framed.add(id));
     for (const l of topo.links) {
       this.linkPairs.add(`${l.a}|${l.b}`);
       this.linkPairs.add(`${l.b}|${l.a}`);
@@ -236,8 +239,10 @@ export class FlowPlayer {
     const { x, y, h } = nv.box;
     const w = textWidth(reason, 13, true) + 22;
     const below = y < 200;
-    const cy = below ? y + h / 2 + 24 + n * 30 : y - h / 2 - 24 - n * 30;
-    const cx = Math.min(Math.max(x, w / 2 + 6), 1000 - w / 2 - 6);
+    // Sit clear of the node edge, where the blocked packet marker and its label rest.
+    // Below a top-row node, also clear the label of the link leaving its bottom edge.
+    const cy = below ? y + h / 2 + 80 + n * 30 : y - h / 2 - 46 - n * 30;
+    const cx = Math.min(Math.max(x, w / 2 + 6), VIEW_W - w / 2 - 6);
     const g = svg('g', { class: 'stage-badge-pos', transform: `translate(${cx} ${cy})` }, this.layer);
     const c = svg('g', { class: `stage-callout${isStatic ? ' static' : ''}` }, g);
     svg('rect', { x: -w / 2, y: -13, width: w, height: 26, rx: 8 }, c);
@@ -263,8 +268,10 @@ export class FlowPlayer {
       const box = this.nodes.get(last)!.box;
       const n = atNode.get(last) ?? 0;
       atNode.set(last, n + 1);
-      // Sit on the node's top edge; spread multiple packets that end on the same node.
-      this.place(g, { x: box.x - 40 + ((n * 44) % 132), y: box.y - box.h / 2 });
+      // Sit on the node's top edge (right edge for framed nodes, so the frame
+      // header stays readable); spread multiple packets that end on the same node.
+      if (this.framed.has(last)) this.place(g, { x: box.x + box.w / 2, y: box.y - 8 + ((n * 30) % 60) });
+      else this.place(g, { x: box.x - 40 + ((n * 44) % 132), y: box.y - box.h / 2 });
       this.endEffect(g, p, true);
     }
   }

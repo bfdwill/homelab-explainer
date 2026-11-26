@@ -46,7 +46,7 @@ export interface TopoNode {
   label: string;
   sublabel?: string;
   kind: NodeKind;
-  /** Center position in SVG user units (viewBox is 1000 x 640). */
+  /** Center position in SVG user units (full viewBox is 1040 x 640). */
   x: number;
   y: number;
 }
@@ -130,6 +130,9 @@ export type Param =
       type: 'toggle';
       label: string;
       help?: string;
+      /** Help shown while the toggle is on / off; falls back to `help`. */
+      helpOn?: string;
+      helpOff?: string;
       default: boolean;
       onLabel?: string;
       offLabel?: string;

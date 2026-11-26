@@ -17,6 +17,8 @@
   --stage-label-text: #d5dde8;
   --stage-frame-stroke: #7d8aa0;
   --stage-frame-bg: rgba(125, 138, 160, 0.07);
+  --stage-frame-header: #263040;
+  --stage-frame-header-hover: #2c3a50;
   --stage-accent: #4fb3ff;
   --stage-packet: #4fb3ff;
   --stage-nat: #c38bff;
@@ -47,6 +49,8 @@
     --stage-label-text: #2a3442;
     --stage-frame-stroke: #8693a7;
     --stage-frame-bg: rgba(110, 125, 150, 0.06);
+    --stage-frame-header: #e6eaf0;
+    --stage-frame-header-hover: #dde8f6;
     --stage-accent: #0b7ad1;
     --stage-packet: #0b7ad1;
     --stage-nat: #8a3ff0;
@@ -136,25 +140,44 @@
   stroke-width: 3;
   filter: drop-shadow(0 0 8px var(--stage-warn));
 }
+.stage-frame[data-state='highlight'] .stage-frame-header,
 .stage-frame[data-state='highlight'] .stage-frame-shape {
   stroke: var(--stage-accent);
 }
+.stage-frame[data-state='warn'] .stage-frame-header,
 .stage-frame[data-state='warn'] .stage-frame-shape {
   stroke: var(--stage-warn);
 }
 
 /* ---------- Frames ---------- */
+/* Only the header strip is a click target; the outline and ring let clicks
+   through so the OPNsense node inside stays its own, separate target. */
+.stage-frame .stage-ring,
+.stage-frame-shape {
+  pointer-events: none;
+}
 .stage-frame-shape {
   fill: var(--stage-frame-bg);
   stroke: var(--stage-frame-stroke);
   stroke-width: 2;
   stroke-dasharray: 8 6;
 }
+.stage-frame-header {
+  fill: var(--stage-frame-header);
+  stroke: var(--stage-frame-stroke);
+  stroke-width: 2;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+.stage-frame:hover .stage-frame-header,
+.stage-frame.is-selected .stage-frame-header {
+  stroke: var(--stage-accent);
+  fill: var(--stage-frame-header-hover);
+}
 .stage-frame:hover .stage-frame-shape {
   stroke: var(--stage-accent);
 }
 .stage-frame-label {
-  fill: var(--stage-subtext);
+  fill: var(--stage-text);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;

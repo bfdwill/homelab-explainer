@@ -79,7 +79,7 @@ Interfaces ▸ [LAN]
   Enable                      : checked
   IPv4 Configuration Type     : Static IPv4
   IPv4 address                : 192.168.1.1 / 24
-  IPv4 Upstream Gateway       : Auto-detect (none; never set a gateway on LAN)
+  IPv4 Upstream Gateway       : none (leave blank; never set a gateway on LAN)
   Block private networks      : unchecked (LAN *is* a private network)
 
 Interfaces ▸ Settings
@@ -204,12 +204,13 @@ interface Vlan1
  ip address 192.168.1.3 255.255.255.0
  no shutdown
 !
-! Layer 2 switch: default gateway for the switch's own traffic
+! Layer 2 switch: default gateway for the switch's own traffic.
+! 3650s often ship with ip routing on, which makes ip default-gateway a no-op.
+no ip routing
 ip default-gateway 192.168.1.1
 !
 ! SSH v2 with a local user
 username admin privilege 15 secret <strong-password>
-crypto key generate rsa modulus 2048
 ip ssh version 2
 !
 line vty 0 15
@@ -217,9 +218,11 @@ line vty 0 15
  transport input ssh
 !
 end
+! Back in privileged EXEC: generate the SSH host key, then save
+crypto key generate rsa modulus 2048
 write memory`,
     note:
-      'ip default-gateway is ignored when ip routing is enabled (check: show running-config | include ip routing); in that case use ip route 0.0.0.0 0.0.0.0 192.168.1.1. Also note the dedicated Gi0/0 management port lives in Mgmt-vrf; this setup uses in-band VLAN 1 instead.',
+      'ip default-gateway is ignored when ip routing is enabled (check: show running-config | include ip routing), hence no ip routing above. If you need routing to stay on, skip no ip routing and use ip route 0.0.0.0 0.0.0.0 192.168.1.1 instead. Also note the dedicated Gi0/0 management port lives in Mgmt-vrf; this setup uses in-band VLAN 1 instead.',
   },
 
   iosPort1Access: {
