@@ -1,0 +1,365 @@
+/* Stage: SVG network diagram + packet animations.
+   All colors come from custom properties on .stage so the shell can override them. */
+
+.stage {
+  /* Dark defaults */
+  --stage-bg: transparent;
+  --stage-node-bg: #1d2430;
+  --stage-node-stroke: #4a5568;
+  --stage-text: #e8edf4;
+  --stage-subtext: #9aa7b8;
+  --stage-icon: #b8c4d4;
+  --stage-link: #7c8899;
+  --stage-usb: #5b9cf0;
+  --stage-coax: #2b2f36;
+  --stage-coax-core: #c9a227;
+  --stage-label-bg: #121821;
+  --stage-label-text: #d5dde8;
+  --stage-frame-stroke: #7d8aa0;
+  --stage-frame-bg: rgba(125, 138, 160, 0.07);
+  --stage-accent: #4fb3ff;
+  --stage-packet: #4fb3ff;
+  --stage-nat: #c38bff;
+  --stage-ok: #3ccf7a;
+  --stage-bad: #ff5a5f;
+  --stage-warn: #ffb020;
+  --stage-on-accent: #0b0f14;
+
+  position: relative;
+  width: 100%;
+  background: var(--stage-bg);
+  color: var(--stage-text);
+  font-family: inherit;
+}
+
+@media (prefers-color-scheme: light) {
+  .stage {
+    --stage-node-bg: #ffffff;
+    --stage-node-stroke: #b9c2cf;
+    --stage-text: #18202b;
+    --stage-subtext: #5a6676;
+    --stage-icon: #4a5566;
+    --stage-link: #8a95a5;
+    --stage-usb: #2f74d0;
+    --stage-coax: #3a3f47;
+    --stage-coax-core: #d8b23a;
+    --stage-label-bg: #f4f6f9;
+    --stage-label-text: #2a3442;
+    --stage-frame-stroke: #8693a7;
+    --stage-frame-bg: rgba(110, 125, 150, 0.06);
+    --stage-accent: #0b7ad1;
+    --stage-packet: #0b7ad1;
+    --stage-nat: #8a3ff0;
+    --stage-ok: #1a9b52;
+    --stage-bad: #d92d3a;
+    --stage-warn: #c77800;
+    --stage-on-accent: #ffffff;
+  }
+}
+
+.stage-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---------- Nodes ---------- */
+.stage-node,
+.stage-frame {
+  cursor: pointer;
+  outline: none;
+  transition: opacity 0.25s ease;
+}
+.stage-node-shape {
+  fill: var(--stage-node-bg);
+  stroke: var(--stage-node-stroke);
+  stroke-width: 2;
+  transition: stroke 0.2s ease, filter 0.2s ease;
+}
+.stage-node:hover .stage-node-shape {
+  stroke: var(--stage-accent);
+}
+.stage-icon {
+  fill: none;
+  stroke: var(--stage-icon);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stage-label {
+  fill: var(--stage-text);
+  font-size: 19px;
+  font-weight: 700;
+}
+.stage-sublabel {
+  fill: var(--stage-subtext);
+  font-size: 15px;
+  font-weight: 500;
+}
+.stage-ring {
+  fill: none;
+  stroke: var(--stage-accent);
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.stage-node:focus-visible .stage-ring,
+.stage-frame:focus-visible .stage-ring {
+  opacity: 0.6;
+  stroke-dasharray: 6 4;
+}
+.is-selected > g > .stage-ring,
+.stage-frame.is-selected > .stage-ring {
+  opacity: 1;
+  stroke-dasharray: none;
+}
+
+.stage-node[data-state='hidden'],
+.stage-frame[data-state='hidden'] {
+  display: none;
+}
+.stage-node[data-state='dim'],
+.stage-frame[data-state='dim'] {
+  opacity: 0.3;
+}
+.stage-node[data-state='highlight'] .stage-node-shape {
+  stroke: var(--stage-accent);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px var(--stage-accent));
+}
+.stage-node[data-state='warn'] .stage-node-shape {
+  stroke: var(--stage-warn);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px var(--stage-warn));
+}
+.stage-frame[data-state='highlight'] .stage-frame-shape {
+  stroke: var(--stage-accent);
+}
+.stage-frame[data-state='warn'] .stage-frame-shape {
+  stroke: var(--stage-warn);
+}
+
+/* ---------- Frames ---------- */
+.stage-frame-shape {
+  fill: var(--stage-frame-bg);
+  stroke: var(--stage-frame-stroke);
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+.stage-frame:hover .stage-frame-shape {
+  stroke: var(--stage-accent);
+}
+.stage-frame-label {
+  fill: var(--stage-subtext);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Links ---------- */
+.stage-link {
+  --link-color: var(--stage-link);
+  transition: opacity 0.25s ease;
+}
+.stage-link-line {
+  fill: none;
+  stroke: var(--link-color);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.stage-link.style-usb {
+  --link-color: var(--stage-usb);
+}
+.stage-link.style-coax .stage-link-outer {
+  fill: none;
+  stroke: var(--stage-coax);
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.stage-link.style-coax .stage-link-line {
+  stroke: var(--stage-coax-core);
+  stroke-width: 2.5;
+}
+.stage-link.style-wireless .stage-link-line {
+  stroke-width: 3.5;
+  stroke-dasharray: 2 9;
+}
+.stage-link-label rect {
+  fill: var(--stage-label-bg);
+  stroke: var(--link-color);
+  stroke-width: 1.5;
+}
+.stage-link-label text {
+  fill: var(--stage-label-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.stage-link-cross {
+  display: none;
+}
+.stage-link-cross circle {
+  fill: var(--stage-bad);
+}
+.stage-link-cross text {
+  fill: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+.stage-link[data-state='down'] .stage-link-line,
+.stage-link[data-state='down'] .stage-link-outer {
+  stroke: var(--stage-bad);
+  stroke-dasharray: 10 8;
+  opacity: 0.85;
+}
+.stage-link[data-state='down'] .stage-link-outer {
+  opacity: 0.3;
+}
+.stage-link[data-state='down'] .stage-link-label rect {
+  stroke: var(--stage-bad);
+}
+.stage-link[data-state='down'] .stage-link-cross {
+  display: inline;
+}
+.stage-link[data-state='hidden'] {
+  display: none;
+}
+
+/* ---------- Packets & effects ---------- */
+.stage-fx {
+  pointer-events: none;
+}
+.stage-packet-body,
+.stage-nat-badge,
+.stage-check,
+.stage-callout {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.stage-packet {
+  --pkt: var(--stage-packet);
+}
+.stage-packet.natted {
+  --pkt: var(--stage-nat);
+}
+.stage-packet.blocked {
+  --pkt: var(--stage-bad);
+}
+.stage-packet-dot {
+  fill: var(--pkt);
+  stroke: var(--stage-node-bg);
+  stroke-width: 2.5;
+  transition: fill 0.25s ease;
+}
+.stage-packet-halo {
+  fill: var(--pkt);
+  opacity: 0.25;
+  transition: fill 0.25s ease;
+}
+.stage-packet-label rect {
+  fill: var(--pkt);
+  transition: fill 0.25s ease;
+}
+.stage-packet-label text {
+  fill: var(--stage-on-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.stage-packet.blocked:not(.static) .stage-packet-body {
+  animation: stage-shake 0.4s ease-in-out 2, stage-fade 0.5s ease 1.9s forwards;
+}
+.stage-packet.blocked .stage-packet-halo {
+  opacity: 0.4;
+}
+.stage-packet.arrived:not(.static) .stage-packet-body {
+  animation: stage-fade 0.35s ease 0.25s forwards;
+}
+
+.stage-nat-badge rect {
+  fill: var(--stage-nat);
+}
+.stage-nat-badge text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.stage-nat-badge:not(.static) {
+  animation: stage-pop 1.5s ease forwards;
+}
+
+.stage-check-ring {
+  fill: var(--stage-ok);
+  fill-opacity: 0.18;
+  stroke: var(--stage-ok);
+  stroke-width: 3;
+}
+.stage-check-mark {
+  fill: none;
+  stroke: var(--stage-ok);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stage-check.static .stage-check-ring {
+  fill: var(--stage-node-bg);
+  fill-opacity: 1;
+}
+.stage-check:not(.static) {
+  animation: stage-pulse 0.9s ease-out forwards;
+}
+
+.stage-callout rect {
+  fill: var(--stage-bad);
+}
+.stage-callout text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.stage-callout:not(.static) {
+  animation: stage-pop-long 2.6s ease forwards;
+}
+
+@keyframes stage-shake {
+  0%, 100% { transform: translateX(0) scale(1); }
+  20% { transform: translateX(-6px) scale(1.15); }
+  40% { transform: translateX(6px) scale(1.15); }
+  60% { transform: translateX(-4px) scale(1.1); }
+  80% { transform: translateX(4px) scale(1.05); }
+}
+@keyframes stage-fade {
+  to { opacity: 0; }
+}
+@keyframes stage-pop {
+  0% { opacity: 0; transform: scale(0.4); }
+  15% { opacity: 1; transform: scale(1.15); }
+  25% { transform: scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes stage-pop-long {
+  0% { opacity: 0; transform: scale(0.6); }
+  8% { opacity: 1; transform: scale(1.05); }
+  14% { transform: scale(1); }
+  82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes stage-pulse {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1.1); }
+  60% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage *::before,
+  .stage *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
