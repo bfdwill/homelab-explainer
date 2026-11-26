@@ -130,6 +130,9 @@ export type Param =
       type: 'toggle';
       label: string;
       help?: string;
+      /** Help shown while the toggle is on / off; falls back to `help`. */
+      helpOn?: string;
+      helpOff?: string;
       default: boolean;
       onLabel?: string;
       offLabel?: string;

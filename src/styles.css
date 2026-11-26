@@ -901,6 +901,14 @@ body.panel-open .stage-hint {
   line-height: 1.5;
   tab-size: 4;
 }
+.snippet pre.is-wrapped {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wrap-toggle[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
 .snippet-note {
   margin: 0;
   padding: 8px 12px;
@@ -1058,6 +1066,35 @@ body.panel-open .stage-hint {
     min-width: 680px;
   }
 
+  /* Touch targets: at least 44x44px for buttons, lesson links and toggles. */
+  .btn,
+  .switch,
+  .lesson-link,
+  .link-button,
+  .segment span {
+    min-height: 44px;
+  }
+  .btn,
+  .switch,
+  .segment span {
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn,
+  .lesson-link,
+  .link-button {
+    min-width: 44px;
+  }
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .sidebar-footer .link-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px;
+  }
+
   .pager .btn {
     max-width: 100%;
     white-space: normal;
@@ -1073,7 +1110,7 @@ body.panel-open .stage-hint {
     top: auto;
     z-index: 40;
     height: auto;
-    max-height: 70vh;
+    max-height: 60vh;
     border-left: 0;
     border-top: 1px solid var(--border-strong);
     border-radius: 16px 16px 0 0;
@@ -1099,7 +1136,7 @@ body.panel-open .stage-hint {
     padding: 0 var(--gutter) calc(24px + env(safe-area-inset-bottom, 0px));
   }
   body.panel-open .main {
-    padding-bottom: 72vh;
+    padding-bottom: 62vh;
   }
 }
 
