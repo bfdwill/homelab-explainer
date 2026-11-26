@@ -29,7 +29,7 @@ export const topology: Topology = {
     { id: 'yellow', a: 'switch', b: 'orbi', label: 'Gi1/0/2', color: '#f2c200', style: 'copper' },
     { id: 'grey', a: 'switch', b: 'pc', label: 'Gi1/0/4', color: '#9aa0a6', style: 'copper' },
     { id: 'wifi', a: 'orbi', b: 'laptop', label: 'WiFi', style: 'wireless' },
-    { id: 'tent', a: 'switch', b: 'tent-hub', label: 'Gi1/0/10', style: 'copper' },
+    { id: 'tent', a: 'switch', b: 'tent-hub', label: 'Gi1/0/10', style: 'copper', labelAt: 0.7 },
     { id: 'tent-sensor', a: 'tent-hub', b: 'tent-sensor', style: 'copper' },
     { id: 'tent-fan', a: 'tent-hub', b: 'tent-fan', style: 'copper' },
     { id: 'tent-light', a: 'tent-hub', b: 'tent-light', style: 'copper' },

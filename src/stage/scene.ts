@@ -137,8 +137,9 @@ export function setLinkLabel(lv: LinkView, label: string | undefined, down: bool
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   const len = Math.hypot(dx, dy) || 1;
-  let x = (p1.x + p2.x) / 2;
-  let y = (p1.y + p2.y) / 2;
+  const t = lv.link.labelAt ?? 0.5;
+  let x = p1.x + dx * t;
+  let y = p1.y + dy * t;
   const horizontal = Math.abs(dx) >= Math.abs(dy);
   const along = horizontal ? w : 22;
   if (down && len >= along + 70) {

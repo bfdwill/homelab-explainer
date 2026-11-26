@@ -1012,8 +1012,14 @@ button {
     margin-left: calc(-1 * var(--gutter) / 2);
     margin-right: calc(-1 * var(--gutter) / 2);
   }
+  .stage-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Keep the diagram readable on phones: scroll it sideways instead of shrinking it. */
   .stage-container {
     min-height: 180px;
+    min-width: 680px;
   }
 
   .pager .btn {

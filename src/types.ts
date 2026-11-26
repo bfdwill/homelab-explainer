@@ -60,6 +60,8 @@ export interface TopoLink {
   /** Cable color, e.g. '#f2c200' for the yellow cable. */
   color?: string;
   style?: 'copper' | 'coax' | 'wireless' | 'usb';
+  /** Where the label sits along the link, 0 = at `a`, 1 = at `b`. Default 0.5. */
+  labelAt?: number;
 }
 
 /** A frame drawn around nodes, e.g. the Proxmox host around the OPNsense VM. */
