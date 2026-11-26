@@ -91,15 +91,17 @@ export const devices: Record<NodeId, DeviceInfo> = {
     what:
       'A mesh WiFi system. It can run as a full router (its own DHCP, NAT and firewall) or as a plain access point that just bridges WiFi clients onto the wired LAN.',
     why:
-      "It gives the house WiFi. It hangs off the switch on the yellow cable rather than sitting at the edge, because OPNsense is the real router. Ideally it runs in AP mode so WiFi devices land on the same 192.168.1.x LAN as everything else.",
+      "It gives the house WiFi. It hangs off the switch on the yellow cable rather than sitting at the edge, because OPNsense is the real router. It runs in AP mode, so WiFi devices land on the same 192.168.1.x LAN as everything else and OPNsense is the only router, DHCP server and NAT.",
     facts: [
       { label: 'Switch port', value: 'Gi1/0/2 (yellow cable), plugs into the Orbi WAN/Internet port' },
-      { label: 'AP mode', value: '192.168.1.2, WiFi clients get 192.168.1.x from OPNsense' },
-      { label: 'Router mode', value: 'WAN 192.168.1.2, own LAN 10.0.0.0/24, gateway 10.0.0.1' },
+      { label: 'Mode', value: 'AP mode (bridges WiFi onto the LAN)' },
+      { label: 'Address', value: '192.168.1.2 (DHCP reservation in OPNsense)' },
+      { label: 'WiFi clients', value: '192.168.1.x from OPNsense DHCP' },
+      { label: 'Router mode (not used)', value: 'Would be WAN 192.168.1.2, own LAN 10.0.0.0/24, gateway 10.0.0.1' },
       { label: 'Power', value: 'Its own power adapter (not PoE)' },
       { label: 'Current state', value: 'Link on Gi1/0/2 is down' },
     ],
-    snippets: [snippets.orbiRouterMode, snippets.orbiApMode],
+    snippets: [snippets.orbiApMode, snippets.orbiRouterMode],
   },
 
   laptop: {
@@ -107,10 +109,10 @@ export const devices: Record<NodeId, DeviceInfo> = {
     name: 'Laptop (WiFi client)',
     what: 'Any wireless device: a laptop, phone or TV that connects to the Orbi over WiFi.',
     why:
-      "It stands in for every WiFi device in the house. Where it gets its address from (the Orbi or OPNsense) depends on the Orbi's mode.",
+      "It stands in for every WiFi device in the house. Because the Orbi is in AP mode, it gets its address from OPNsense, just like the wired PC.",
     facts: [
-      { label: 'Orbi in AP mode', value: '192.168.1.x from OPNsense DHCP, gateway 192.168.1.1' },
-      { label: 'Orbi in router mode', value: '10.0.0.x from the Orbi, gateway 10.0.0.1' },
+      { label: 'Address', value: '192.168.1.x from OPNsense DHCP, gateway 192.168.1.1' },
+      { label: 'If the Orbi were a router', value: '10.0.0.x from the Orbi, gateway 10.0.0.1' },
       { label: 'Connection', value: 'WiFi to the Orbi' },
     ],
   },

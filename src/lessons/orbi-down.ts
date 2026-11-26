@@ -1,7 +1,7 @@
 import { snippets } from '../content/snippets';
-import type { Flow, Lesson, NodeId, NodeState, SolveResult } from '../types';
+import type { Lesson, NodeId, NodeState, SolveResult } from '../types';
 
-type Cause = 'cable' | 'port-shutdown' | 'err-disabled' | 'wrong-orbi-port';
+type Cause = 'cable' | 'port-shutdown' | 'err-disabled' | 'wrong-vlan';
 
 const hidden: Partial<Record<NodeId, NodeState>> = {
   'tent-hub': 'hidden',
@@ -78,20 +78,19 @@ const causes: Record<Cause, CauseInfo> = {
       'Optionally enable automatic recovery: `errdisable recovery cause <cause>`.',
     ],
   },
-  'wrong-orbi-port': {
+  'wrong-vlan': {
     linkUp: true,
-    laptopStop: ['laptop', 'orbi'],
-    laptopReason: 'Orbi Internet port has no link: the yellow cable is in a LAN port',
-    pcReason: '',
+    laptopStop: ['laptop', 'orbi', 'switch'],
+    laptopReason: 'Gi1/0/2 is in VLAN 30, but Gi1/0/1 only carries VLAN 1',
+    pcReason: 'Gi1/0/2 is in VLAN 30 and the PC is in VLAN 1',
     status:
-      'The link is up, but the yellow cable is in one of the Orbi LAN ports, so the Orbi WAN/Internet port has nothing on it and reports "no internet" while its own DHCP leaks onto your main LAN.',
-    showStatus: 'Gi1/0/2  Orbi (yellow)  connected  1  a-full  a-1000  10/100/1000BaseTX',
-    fixedBy: 'moving the cable to the Orbi WAN/Internet port',
+      'The link is up, but Gi1/0/2 is in the wrong VLAN (30 instead of 1). In AP mode the Orbi bridges WiFi clients straight onto that VLAN, so their DHCP requests never reach OPNsense and they end up with no usable address.',
+    showStatus: 'Gi1/0/2  Orbi (yellow)  connected  30  a-full  a-1000  10/100/1000BaseTX',
+    fixedBy: 'putting Gi1/0/2 back in VLAN 1',
     checklist: [
-      'Check which Orbi port the cable is in. The WAN/Internet port is usually a different colour or set apart from the LAN ports.',
-      'In router mode, a LAN port connected to the switch puts the Orbi DHCP server (10.0.0.x) on your main LAN. Devices there may get the wrong address: check the PC with `ipconfig`.',
-      'Move the cable to the WAN/Internet port and reboot the Orbi so it requests an address from OPNsense.',
-      'Confirm in OPNsense (Services ▸ ISC DHCPv4 ▸ Leases, or the Kea/Dnsmasq leases page) that the Orbi got 192.168.1.2.',
+      'In `show interfaces status`, the Vlan column for Gi1/0/2 says 30, not 1. `show vlan brief` lists the ports in each VLAN.',
+      'Fix: `conf t`, `interface gi1/0/2`, `switchport access vlan 1`, `end`, then `write memory`.',
+      'On the laptop, a 169.254.x.x address (Windows "No internet", macOS "Self-assigned IP") means its DHCP request got no answer.',
     ],
   },
 };
@@ -100,7 +99,7 @@ export const orbiDown: Lesson = {
   id: 'orbi-down',
   title: 'Orbi down',
   intro:
-    'Right now the yellow cable from switch port Gi1/0/2 to the Orbi has no link, so every WiFi device has a signal but no internet.\n\n' +
+    'Right now the yellow cable from switch port Gi1/0/2 to the Orbi has no link, so every WiFi device has a signal but no internet. The Orbi runs in AP mode, so it does not hand out addresses either: DHCP comes from OPNsense, on the far side of that cable.\n\n' +
     'Pick a likely cause to see its symptoms and fix, then flip the link up to watch WiFi traffic flow again.',
   params: [
     {
@@ -122,14 +121,14 @@ export const orbiDown: Lesson = {
         { value: 'cable', label: 'Bad or loose cable' },
         { value: 'port-shutdown', label: 'Port shut down in config' },
         { value: 'err-disabled', label: 'Port err-disabled' },
-        { value: 'wrong-orbi-port', label: 'Cable in an Orbi LAN port' },
+        { value: 'wrong-vlan', label: 'Port in the wrong VLAN' },
       ],
     },
   ],
   actions: [
     { id: 'laptop-web', label: 'Laptop loads a website', description: 'A WiFi client tries to reach the internet.' },
-    { id: 'pc-to-orbi', label: 'PC reaches the Orbi', description: 'The PC looks for the Orbi WAN at 192.168.1.2, out Gi1/0/2.' },
-    { id: 'laptop-gw', label: 'Laptop pings its gateway', description: 'Is the WiFi part fine?' },
+    { id: 'pc-to-orbi', label: 'PC reaches the Orbi', description: 'The PC looks for the Orbi at 192.168.1.2, out Gi1/0/2.' },
+    { id: 'laptop-dhcp', label: 'Laptop asks for an IP', description: 'In AP mode the laptop gets its address from OPNsense, not the Orbi.' },
   ],
   solve({ params, action }): SolveResult {
     const up = params.orbiLinkUp === true;
@@ -143,14 +142,14 @@ export const orbiDown: Lesson = {
     if (!up) {
       nodes.orbi = 'warn';
       if (!cause.linkUp) links.yellow = 'down';
-      else linkLabels.yellow = 'Gi1/0/2 → Orbi LAN port';
+      else linkLabels.yellow = 'Gi1/0/2 · VLAN 30 (wrong)';
     }
 
     const base = { links, nodes, linkLabels };
     const upDetails = [
       `Fixed by ${cause.fixedBy}. \`show interfaces status\` now shows: Gi1/0/2  Orbi (yellow)  connected  1  a-full  a-1000`,
-      'Laptop → Orbi over WiFi, Orbi WAN (192.168.1.2) → yellow cable → Gi1/0/2 → Gi1/0/1 → OPNsense → modem → internet.',
-      'The Orbi is still in router mode here, so the laptop traffic is NATed twice. The "Double NAT" lesson digs into that.',
+      'Laptop (192.168.1.x lease from OPNsense) → Orbi over WiFi → bridged onto the yellow cable → Gi1/0/2 → Gi1/0/1 → OPNsense → modem → internet.',
+      'The Orbi is in AP mode, so it is only a bridge: OPNsense is the laptop\'s gateway (192.168.1.1), its DHCP server and the only NAT. The "Double NAT" lesson shows what router mode would add.',
     ];
     const downDetails = [`Switch says: ${cause.showStatus}`, ...cause.checklist, ...commonChecks];
 
@@ -163,7 +162,7 @@ export const orbiDown: Lesson = {
               {
                 path: ['laptop', 'orbi', 'switch', 'opnsense', 'modem', 'internet'],
                 verdict: 'nat',
-                natAt: ['orbi', 'opnsense'],
+                natAt: ['opnsense'],
                 label: 'HTTPS',
               },
             ],
@@ -181,43 +180,50 @@ export const orbiDown: Lesson = {
       }
 
       case 'pc-to-orbi': {
-        if (up || cause.linkUp) {
-          const flow: Flow = up
-            ? { path: ['pc', 'switch', 'orbi'], verdict: 'allow', label: 'ARP 192.168.1.2' }
-            : {
-                path: ['pc', 'switch', 'orbi'],
-                verdict: 'block',
-                label: 'ARP 192.168.1.2',
-                reason: 'Arrives on an Orbi LAN port, not its WAN: no 192.168.1.2 there',
-              };
+        if (up) {
           return {
             ...base,
-            flows: [flow],
-            status: up
-              ? 'Frames from the wired side now leave Gi1/0/2 and the Orbi WAN at 192.168.1.2 answers.'
-              : 'Frames do leave Gi1/0/2 because the link is up, but they land on an Orbi LAN port, where nothing owns 192.168.1.2.',
-            details: up ? upDetails : downDetails,
+            flows: [{ path: ['pc', 'switch', 'orbi'], verdict: 'allow', label: 'ARP 192.168.1.2' }],
+            status: 'Frames from the wired side now leave Gi1/0/2 and the Orbi answers at its AP address, 192.168.1.2, on the same LAN as the PC.',
+            details: upDetails,
           };
         }
         return {
           ...base,
           flows: [{ path: ['pc', 'switch'], verdict: 'block', label: 'ARP 192.168.1.2', reason: cause.pcReason }],
-          status: `The switch has nowhere to send it: ${cause.pcReason}.`,
+          status: cause.linkUp
+            ? `The link is up, but the switch keeps VLANs apart: ${cause.pcReason}, so the PC's ARP never reaches the Orbi.`
+            : `The switch has nowhere to send it: ${cause.pcReason}.`,
           details: downDetails,
         };
       }
 
-      case 'laptop-gw': {
+      case 'laptop-dhcp': {
+        if (up) {
+          return {
+            ...base,
+            flows: [
+              { path: ['laptop', 'orbi', 'switch', 'opnsense'], verdict: 'allow', label: 'DHCP Discover' },
+              { path: ['opnsense', 'switch', 'orbi', 'laptop'], verdict: 'allow', label: 'DHCP Offer' },
+            ],
+            status:
+              'The Orbi bridges the laptop\'s DHCP request across the yellow cable to OPNsense, which offers a 192.168.1.x lease with gateway and DNS 192.168.1.1.',
+            details: upDetails,
+          };
+        }
         return {
           ...base,
           flows: [
-            { path: ['laptop', 'orbi'], verdict: 'allow', label: 'ping 10.0.0.1' },
-            { path: ['orbi', 'laptop'], verdict: 'allow', label: 'pong' },
+            {
+              path: cause.laptopStop,
+              verdict: 'block',
+              label: 'DHCP Discover',
+              reason: 'No DHCP server: in AP mode that is OPNsense',
+            },
           ],
-          status: up
-            ? 'The laptop pings its gateway 10.0.0.1 (the Orbi) and gets a reply, as it always could; with the link up, the rest of the path works too.'
-            : 'The Orbi still answers ping at 10.0.0.1, so WiFi itself is fine: the fault is between the Orbi and the switch.',
-          details: up ? upDetails : downDetails,
+          status:
+            'WiFi itself still works and the laptop joins the network, but the Orbi in AP mode does not hand out addresses. The DHCP request cannot reach OPNsense, so a newly joining laptop falls back to a 169.254.x.x address.',
+          details: downDetails,
         };
       }
 
@@ -238,7 +244,7 @@ export const orbiDown: Lesson = {
       snippets: [snippets.iosLinkTroubleshoot],
     },
     orbi: {
-      body: 'The cable from the switch must go into the Orbi WAN/Internet port, not one of its LAN ports. The Orbi has its own power supply; PoE from the switch does not power it.',
+      body: 'In AP mode the Orbi is only a bridge: its own address (192.168.1.2) and every WiFi client\'s address come from OPNsense across the yellow cable, so when that link drops, new WiFi clients cannot get an address at all. The Orbi has its own power supply; PoE from the switch does not power it.',
     },
   },
 };

@@ -14,18 +14,18 @@ export const doubleNat: Lesson = {
   id: 'double-nat',
   title: 'Double NAT',
   intro:
-    'In router mode the Orbi runs its own little network (10.0.0.0/24) behind OPNsense. That means two routers, two firewalls and two layers of NAT between a WiFi device and the internet.\n\n' +
-    'This lesson assumes the yellow cable is fixed. Send packets in router mode, then switch the Orbi to AP mode and send them again.',
+    'My Orbi runs in AP mode: it only bridges WiFi onto the LAN, and OPNsense is the one router. Out of the box, though, an Orbi is a router. Left that way behind OPNsense, it runs its own little network (10.0.0.0/24), which means two routers, two firewalls and two layers of NAT between a WiFi device and the internet.\n\n' +
+    'This lesson assumes the yellow cable is fixed. It starts in AP mode, the real setup. Send some packets, then flip the Orbi to router mode to see what double NAT would break.',
   params: [
     {
       id: 'orbiMode',
       type: 'choice',
       label: 'Orbi mode',
-      help: 'Router mode: Orbi does DHCP and NAT. AP mode: Orbi only bridges WiFi onto the LAN.',
-      default: 'router',
+      help: 'AP mode (the real setup): Orbi only bridges WiFi onto the LAN. Router mode (factory default): Orbi does its own DHCP and NAT.',
+      default: 'ap',
       options: [
-        { value: 'router', label: 'Router mode' },
-        { value: 'ap', label: 'AP mode' },
+        { value: 'ap', label: 'AP mode (my setup)' },
+        { value: 'router', label: 'Router mode (what-if)' },
       ],
     },
   ],
@@ -214,19 +214,19 @@ export const doubleNat: Lesson = {
           ...base,
           flows: [],
           status: ap
-            ? 'The Orbi is in AP mode: WiFi devices sit on 192.168.1.0/24 with the PC. Press "Laptop loads a website" and count the NAT badges.'
-            : 'The Orbi is in router mode, so WiFi devices live on 10.0.0.0/24 behind a second NAT. Press "Laptop loads a website" and count the NAT badges.',
+            ? 'The Orbi is in AP mode, as it really is: WiFi devices sit on 192.168.1.0/24 with the PC. Press "Laptop loads a website" and count the NAT badges, then try router mode.'
+            : 'What-if: with the Orbi in router mode, WiFi devices would live on 10.0.0.0/24 behind a second NAT. Press "Laptop loads a website" and count the NAT badges.',
           details: ap ? apNotes : routerProblems,
         };
     }
   },
   deviceNotes: {
     orbi: {
-      body: 'To get rid of double NAT, switch the Orbi to AP mode. Its WAN cable stays on Gi1/0/2; it gets 192.168.1.2 (reserve it in OPNsense DHCP) and stops handing out 10.0.0.x addresses.',
+      body: 'This Orbi runs in AP mode: its cable is on Gi1/0/2, it has 192.168.1.2 (reserved in OPNsense DHCP), and it hands out no addresses of its own. Router mode is the factory default; the steps below are how to switch out of it.',
       snippets: [snippets.orbiApMode],
     },
     opnsense: {
-      body: 'In router mode OPNsense sees all WiFi traffic as coming from one address, 192.168.1.2. In AP mode each WiFi device gets its own LAN lease and shows up separately.',
+      body: 'In AP mode (the real setup) each WiFi device gets its own LAN lease and shows up separately in OPNsense. In router mode OPNsense would see all WiFi traffic as coming from one address, 192.168.1.2.',
     },
   },
 };

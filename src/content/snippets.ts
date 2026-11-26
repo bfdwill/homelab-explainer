@@ -353,7 +353,7 @@ configure terminal
 
   // ---------------------------------------------------------------- Orbi
   orbiApMode: {
-    title: 'Orbi: switch to AP mode',
+    title: 'Orbi: AP mode (how this Orbi is set up)',
     lang: 'text',
     code: `1. On a device connected to the Orbi, browse to http://orbilogin.com
    (or the Orbi's IP) and log in with the admin password.
@@ -379,7 +379,7 @@ What changes:
   },
 
   orbiRouterMode: {
-    title: 'Orbi: router mode (the default)',
+    title: 'Orbi: router mode (factory default, not used here)',
     lang: 'text',
     code: `In router mode the Orbi acts as a second home router:
   WAN side : 192.168.1.2, a client on the OPNsense LAN (via switch Gi1/0/2)
@@ -400,6 +400,6 @@ Side effects of double NAT:
   - Port forwards and UPnP have to be done twice, and OPNsense sees every
     WiFi client as the single address 192.168.1.2.
   - Some games and VoIP report "strict NAT".`,
-    note: 'Fix: put the Orbi in AP mode so OPNsense is the only router.',
+    note: 'This is why this Orbi runs in AP mode: OPNsense stays the only router.',
   },
 };

@@ -1,7 +1,7 @@
 # Home Lab Network Explainer
 
 An interactive, in-browser explainer of a real home lab network. Instead of reading a
-diagram, you flip switches (unplug the yellow cable, put the Orbi in router mode, turn
+diagram, you flip switches (unplug the yellow cable, flip the Orbi from AP to router mode, turn
 on the IoT VLAN) and watch packets travel from the PC, laptop and grow tent out to the
 internet, get NATed, or get stopped by a firewall rule. Every device has a side panel
 with the real OPNsense, Cisco IOS XE and Proxmox configs behind it. Modeled after the
@@ -46,7 +46,7 @@ flowchart LR
 
 1. **The core path**: follow a packet from the PC through the switch, OPNsense and the modem to the internet, and see where NAT happens.
 2. **The Orbi is down**: the yellow cable's link on `Gi1/0/2` is down; work through layer 1 to layer 2 checks to find out why.
-3. **Double NAT**: compare the Orbi in router mode (two NATs, two subnets) with AP mode (one network).
+3. **Double NAT**: the Orbi runs in AP mode (one network, one NAT). Flip it to router mode, the factory default, to see the two NATs and two subnets you would get instead.
 4. **IoT VLAN**: put the grow tent on VLAN 30 and watch OPNsense allow DNS and internet but block the LAN.
 
 ## Run locally
